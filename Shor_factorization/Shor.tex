@@ -1,0 +1,825 @@
+\documentclass[dvipdfmx,12pt]{beamer}
+\usepackage{bxdpx-beamer}
+\usepackage{pxjahyper}
+\usepackage{minijs}
+\renewcommand{\kanjifamilydefault}{\gtdefault}
+
+\usetheme{Madrid}
+
+\usepackage[labelformat=empty,labelsep=none]{caption}
+\usepackage{ascmac}
+\usepackage{amsmath,amssymb}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}
+\usepackage{ulem}
+\usepackage{fancybox,ascmac}
+\usepackage{bm}
+\usepackage{listings}
+\usepackage{graphicx}
+\setbeamertemplate{navigation symbols}{}
+\usepackage{mathptmx}
+
+\title{Shorのアルゴリズム解説}
+\author[Laplace0917]{@0917datw}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+
+\begin{frame}
+
+\frametitle{はじめに}
+
+本スライドは，下記の論文解説を行なうものである．\\
+本論文では，量子コンピュータによって素因数分解問題や離散対数問題を解読できることを示している．\\
+  
+\vspace{25pt}
+
+\begin{center}
+    P. W. Shor: \\
+    "Algorithms for Quantum Computation: Discrete Logarithms and Factoring”, \\
+    Proceedings of IEEE Symposium on Foundations of Computer Science (FOCS’94), \\
+    pp.124-134, 1994.
+\end{center}
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{目次}
+
+1. Shorの素因数分解アルゴリズムの概要 \\
+2. 量子計算量理論入門 \\
+3. Shorの素因数分解アルゴリズムの詳細 \\
+4. Shorの素因数分解アルゴリズムの実装 \\
+5. Shorの離散対数アルゴリズムの詳細
+    
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{1. Shorの素因数分解アルゴリズムの概要}
+  
+\textcolor{red}{1. Shorの素因数分解アルゴリズムの概要} \\
+2. 量子計算量理論入門 \\
+3. Shorの素因数分解アルゴリズムの詳細 \\
+4. Shorの素因数分解アルゴリズムの実装 \\
+5. Shorの離散対数アルゴリズムの詳細
+      
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの概要}
+      
+Shorの素因数分解アルゴリズムの概要は次のようになる．\\
+正整数 $ a, b $ に対して，$ (a, b) $ で $a$ と $b$ の最大公約数を表す．\\
+
+\vspace{10pt}
+
+Input : $N$ \\
+Output : $N$のある素因数 \\
+
+\vspace{10pt}
+
+$(i)$. $ x \in \{ 1, \cdots, N - 1 \} $ をランダムに選ぶ \\
+$(ii)$. $ (x, N) $ が1でなければその値を出力して終了し，1なら$(iii)$へ \\
+$(iii)$. $ \mathrm{mod} \ N $ における $x$ の位数 $r$ を計算する \\
+$(iv)$. $r$ が偶数かつ $ x^{r/2} \not\equiv N - 1 \ \mathrm{mod} \ N $ なら $ (x^{r/2} - 1, N) $ を出力する，そうでなければ$(i)$へ戻る
+          
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの補足}
+          
+$ \bullet $ $ x^r \equiv 1 \ \mathrm{mod} \ N $ なる $r$ は存在するのか？ \\
+$ \rightarrow $ $x$ と $N$ が互いに素ゆえ，$                                             r = \phi(N) $ での下記のEulerの定理から従う．
+つまり，$ \{ 1 \leq r \leq N - 1 | x^r \equiv 1 \ \mathrm{mod} \ N \} $ なる集合は空でない． \\
+$ \bullet $ $ (iv) $ での $ (x^{r/2} - 1, N) $ は $N$ の素因数になっているのか？ \\
+$ \rightarrow $ まず，$r$ が位数ゆえ，$ x^{r/2} - 1 \not\equiv 0 \ \mathrm{mod} \ N $ に注意する． \\
+$ (x^{r/2} - 1, N) = 1 $ と仮定すると，$ x^r - 1 = (x^{r/2} - 1)(x^{r/2} + 1) $  $ \equiv 0 \ \mathrm{mod} \ N $ ゆえ，$ x^{r/2} + 1 \equiv 0 \ \mathrm{mod} \ N $ となるが，これは $ x^{r/2} \not\equiv N - 1 \ \mathrm{mod} \ N $ に矛盾． \\
+よって，$ (x^{r/2} - 1, N) \geq 2 $ ゆえ成り立つ．
+
+\vspace{10pt}
+
+\begin{itembox}[l]{Thm(Euler)}
+    $x$ と $N$ が互いに素のとき，$ x^{\phi(N)} \equiv 1 \ \mathrm{mod} \ N $ \\
+    ここで，$ \phi(N) $ で $N$ と互いに素で1以上 $ N $ 以下の自然数の個数を表す
+\end{itembox} 
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの補足}
+              
+$ \bullet $ どの程度の確率で $ (iv) $ の「$r$ が偶数かつ $ x^{r/2} \not\equiv N - 1 \ \mathrm{mod} \ N $」なる条件は満たされるのか？ \\
+$ \rightarrow $ 下記のThm\cite{NC}が確率の下界を与える．
+    
+\vspace{10pt}
+
+\begin{itembox}[l]{Thm}
+    $ N = p_1^{\alpha_1} \cdots p_m^{\alpha_m} $ で奇素数の素因数分解とする． \\
+    $ x \in (\mathbb{Z} / N \mathbb{Z})^{\times} $ をランダムに選び，$r$ を $ \mathrm{mod} \ N $ での $x$ の位数とするとき，
+    $r$ が偶数かつ $ x^{r/2} \not\equiv N - 1 \ \mathrm{mod} \ N $ なる確率は $ \displaystyle 1 - \frac{1}{2^m} $ 以上である．
+\end{itembox} 
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの具体例}
+              
+$N = 35$ の場合での具体例 \\
+
+1) $ x = 8 $ \\
+$ 8^4 \equiv 1 \ \mathrm{mod} \ 35 $ であり，$ 8 $ の $ \mathrm{mod} \ 35 $ での位数は $4$．\\
+よって，$ (8^2 - 1, 35) = (63, 35) = 7 $ であり，上手く行っている． \\
+2) $ x = 16 $ \\
+$ {16}^3 \equiv 1 \ \mathrm{mod} \ 35 $ であり，$ 8 $ の $ \mathrm{mod} \ 35 $ での位数は $3$ で奇数．\\
+3) $ x = 19 $ \\
+$ {19}^6 \equiv 1 \ \mathrm{mod} \ 35 $ であり，$ 19 $ の $ \mathrm{mod} \ 35 $ での位数は $6$．\\
+しかし，$ ({19}^3 - 1, 35) = (6858, 35) = 1 $ である．
+
+                  
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{2. 量子計算量理論入門}
+      
+1. Shorの素因数分解アルゴリズムの概要 \\
+\textcolor{red}{2. 量子計算量理論入門} \\
+3. Shorの素因数分解アルゴリズムの詳細 \\
+4. Shorの素因数分解アルゴリズムの実装 \\
+5. Shorの離散対数アルゴリズムの詳細
+          
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{量子計算の定義}
+
+以下では，$ | 0 \rangle := \left( \begin{array}{c} 1 \\ 0 \end{array} \right) $, $ | 1 \rangle := \left( \begin{array}{c} 0 \\ 1 \end{array} \right) $ として，
+古典ビットの0と1に対応する量子ビット（以下単にビット，量子状態ともいう）をそれぞれ $ | 0 \rangle, | 1 \rangle $ で表す．
+また，$ \langle 0 |, \langle 1 | $ をそれぞれ $ | 0 \rangle, | 1 \rangle $ の転置とする．
+
+\vspace{10pt}
+
+量子計算とは次のような操作である\cite{森前}．\\
+1. 量子コンピュータの状態は，複素係数の振幅を持ち，\\
+
+\begin{center}
+    $ \displaystyle \sum_{z \in \{ 0, 1 \}^n } c_z | z \rangle $
+\end{center}
+
+というベクトルで与えられる．\\
+ここで， $ c_z \in \mathbb{C} \ \mathrm{s.t.} \ \sum_{z \in \{ 0, 1 \}^n } |c_z|^2 = 1 $ であり，
+$ | z \rangle $ は，$ z $ を $n$ ビット列として，各ビットのTensor積を表す．\\
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{量子計算の定義}
+
+2. 計算の開始時，量子計算機はある初期状態 $ | \psi_1 \rangle $ にある． \\
+3. 状態ベクトルを変化させる際には，ユニタリ変換（転置共役が逆行列と等しい）によって得られる． \\
+4. 最終状態が $ \psi_t $ で，\\
+
+\begin{center}
+    $ \displaystyle \psi_t = \sum_{z \in \{ 0, 1 \}^n } c_z | z \rangle $
+\end{center}
+
+とするとき，これを測定すると，状態 $ | z \rangle $ を確率 $ | c_z |^2 $ で得る． \\
+測定値 $z$ を得る確率は $ | c_z |^2 $ である，ともいう．
+            
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{量子計算の具体例}
+
+古典ビットでの「01」は， \vspace{-25pt}
+
+\begin{align*}
+    \displaystyle | 01 \rangle = | 0 \rangle \otimes | 1 \rangle = \left( \begin{array}{c} 1 \\ 0 \end{array} \right) \otimes \left( \begin{array}{c} 0 \\ 1 \end{array} \right) = \left( \begin{array}{c} 0 \\ 1 \\ 0 \\ 0 \end{array} \right)
+\end{align*}
+
+という量子状態で表せる．\\
+また，初期状態が $ | 0 \rangle $ の際に，\vspace{-25pt}
+
+\begin{align*}
+    \displaystyle H := \frac{1}{\sqrt{2}} \left( \begin{array}{cc} 1 & 1 \\ 1 & -1 \end{array} \right)
+\end{align*}
+
+として，$ | 0 \rangle $ に $ H $ を2回作用させると，$ | 0 \rangle $ が得られる．
+これは，測定値0を得る確率は1で，測定値1を得る確率は0なので，確実に測定値0を得ることを意味する．
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{量子Fourier変換}
+
+2べきで表せる正整数 $ q $ i.e. $ \exists k \ \mathrm{s.t.} \ q = 2^k $ を取る．
+$ z \in \{ 0, 1 \}^k $ で $z$ を2進数とみたときに，10進展開した整数を $ T_z $ として，
+$ | T_z \rangle := | z \rangle $ とみなす． \\
+例えば，2量子ビットなら，$ | 0 \rangle = | 00 \rangle, | 1 \rangle = | 01 \rangle, | 2 \rangle = | 10 \rangle, $ $ | 3 \rangle = | 11 \rangle $ である． \\
+
+\vspace{10pt}
+
+$ 0 \leq a \leq q - 1 $ としたとき，\vspace{-25pt}
+
+\begin{align*}
+    \displaystyle \mathscr{F} | a \rangle := \frac{1}{q^{1/2}} \sum_{b = 0}^{q - 1} \mathrm{exp} \left( 2 \pi \sqrt{-1} \frac{ab}{q} \right) | b \rangle
+\end{align*}
+
+なる状態を状態 $ | a \rangle $ に対する量子Fourier変換という．
+これはユニタリ変換である．
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{量子Fourier変換はユニタリ変換}
+
+$ a, a^{\prime} \in \mathbb{Z} / q \mathbb{Z} $ を取ると，\vspace{-25pt}
+
+\begin{align*}
+    \displaystyle & \frac{1}{q} \sum_{b = 0}^{q - 1} \mathrm{exp} \left( 2 \pi \sqrt{-1} \frac{ab}{q} \right) \overline{\mathrm{exp} \left( 2 \pi \sqrt{-1} \frac{a^{\prime}b}{q} \right)} \\
+    \displaystyle & = \frac{1}{q} \sum_{b = 0}^{q - 1} \mathrm{exp} \left( 2 \pi \sqrt{-1} \frac{(a - a^{\prime} )b}{q} \right) \\
+    \displaystyle & = \begin{cases} 1 \hspace{10pt} a = a^{\prime} \\ 0 \hspace{10pt} \mathrm{o.w.} \end{cases}
+\end{align*}
+
+ゆえ，示された． \hspace{\fill} $ \square $
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{3. Shorの素因数分解アルゴリズムの詳細}
+          
+1. Shorの素因数分解アルゴリズムの概要 \\
+2. 量子計算量理論入門 \\
+\textcolor{red}{3. Shorの素因数分解アルゴリズムの詳細} \\
+4. Shorの素因数分解アルゴリズムの実装 \\
+5. Shorの離散対数アルゴリズムの詳細
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの概要再掲}
+
+Shorの素因数分解アルゴリズムの概要を再掲．\\
+正整数 $ a, b $ に対して，$ (a, b) $ で $a$ と $b$ の最大公約数を表す．\\
+
+\vspace{10pt}
+
+Input : $N$ \\
+Output : $N$のある素因数 \\
+
+\vspace{10pt}
+
+$(i)$. $ x \in \{ 1, \cdots, N - 1 \} $ をランダムに選ぶ \\
+$(ii)$. $ (x, N) $ が1でなければその値を出力して終了し，1なら$(iii)$へ \\
+\textcolor{red}{$(iii)$. $ \mathrm{mod} \ N $ における $x$ の位数 $r$ を計算する} \\
+$(iv)$. $r$ が偶数かつ $ x^{r/2} \not\equiv N - 1 \ \mathrm{mod} \ N $ なら $ (x^{r/2} - 1, N) $ を出力する，そうでなければ$(i)$へ戻る
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの詳細}
+              
+$ 2 N^2 \leq q < 4 N^2 $ であり，2べきで表せる $q$ を取る．
+このような $q$ が一意的に存在することを示す． \\
+
+\vspace{10pt}
+
+$ \because) $ $ q = \lceil 2 \mathrm{log}_2 N \rceil + 1 $ とする．$ q $ は正整数である．このとき， \\
+$ 2^q \geq 2 \times 2^{2 \mathrm{log}_2 N} = 2 N^2 $ であり，
+$ 2^q < 2^{2 \mathrm{log}_2 N + 2} = 4 N^2 $ である． \\
+$ p < q $ なる正整数 $p$ については，$ 2^p \leq 2^{q - 1} = 2^{\lceil 2 \mathrm{log}_2 N \rceil} $ $ < 2^{2 \mathrm{log}_2 N + 1} = 2N^2 $ である．\\
+一方，$ p > q $ なる正整数 $p$ については，$ 2^p \geq 2^{q + 1} = 2^{\lceil 2 \mathrm{log}_2 N \rceil + 2} $  $ \geq 2^{ 2 \mathrm{log}_2 N + 2} = 4 N^2 $ となる．\\         
+以上より，条件を満たす正整数 $q$ は一意的に存在する． \hspace{\fill} $ \square $
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの詳細}
+
+$ a \in \mathbb{Z} / q \mathbb{Z} $ を取って， \vspace{-25pt}
+
+\begin{align*}
+    \displaystyle \frac{1}{q^{\frac{1}{2}}} \sum_{a = 0}^{q - 1} |a \rangle
+\end{align*}
+
+なる状態を考える．\\
+また，$ x^a \ \mathrm{mod} \ N $ を計算するために，\vspace{-25pt}
+
+\begin{align*}
+    \displaystyle \frac{1}{q^{\frac{1}{2}}} \sum_{a = 0}^{q - 1} |x^a \ \mathrm{mod} \ N \rangle
+\end{align*}
+
+なる状態を考える． \\
+そして，これらの状態の合成として， \vspace{-25pt}
+
+\begin{align*}
+    \displaystyle \frac{1}{q^{\frac{1}{2}}} \sum_{a = 0}^{q - 1} |a \rangle \otimes |x^a \ \mathrm{mod} \ N \rangle
+\end{align*}
+
+を以下では考える．
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの詳細}
+
+ここで，状態 $ | a \rangle $ に対して量子Fourier変換を作用させる． \vspace{-25pt}
+
+\begin{align*}
+    \displaystyle \frac{1}{q} \sum_{c = 0}^{q - 1} \left( \sum_{a = 0}^{q - 1} \mathrm{exp} \left( 2 \pi \sqrt{-1} \frac{ac}{q} \right) \right) | c \rangle \otimes |x^a \ \mathrm{mod} \ N \rangle
+\end{align*}
+
+さて，ここで $ r | N $ であることに注意する． \\
+
+\vspace{10pt}
+
+$ \because ) $ $ G := \{ 1 \ \mathrm{mod} \ N, x \ \mathrm{mod} \ N, \cdots, x^{N - 1} \ \mathrm{mod} \ N  \} $ は位数 $N$ の部分群であり，
+$ \{ 1 \ \mathrm{mod} \ N, x \ \mathrm{mod} \ N, \cdots, x^{r - 1} \ \mathrm{mod} \ N  \} $ は $ x^r \equiv 1 \ \mathrm{mod} \ N $ から，$G$ の部分群で位数 $ r $ である．
+よって，Lagrangeの定理から主張を得る． \hspace{\fill} $ \square $
+
+\vspace{10pt}
+
+\begin{itembox}[l]{Thm(Lagrange)}
+    $G$ を有限群，$H$ をその部分群，$|G|, |H|$ でそれぞれ $ G, H $ の位数を表すとき，$ |G| = |G/H| |H| $ が成り立つ．
+\end{itembox} 
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの詳細}
+
+このことから，$ 0 \leq a \leq q - 1 $ で，$ 0 \leq k < r $ を考えると，
+$ x^a \equiv x^k \ \mathrm{mod} \ N $ なら $ a \equiv k \ \mathrm{mod} \ N $ となる．\\
+以下では，状態 $ ( | c \rangle, | x^k \ \mathrm{mod} \ N \rangle ) $ を観測する確率を考える．
+その確率は， \vspace{-25pt}
+
+\begin{align*}
+    \displaystyle \left| \frac{1}{q} \sum_{a : x^a \equiv x^k \ \mathrm{mod} \ N} \mathrm{exp} \left( 2 \pi \sqrt{-1} \frac{ac}{q} \right) \right|^2
+\end{align*}
+
+で与えられる．
+$ a \equiv k \ \mathrm{mod} \ N $ ゆえ，$ a = br + k $ と置くと，上記の確率は， \vspace{-25pt}
+
+\begin{align*}
+    \displaystyle \left| \frac{1}{q} \sum_{b = 0}^{\lfloor (q - k - 1)/r \rfloor} \mathrm{exp} \left( 2 \pi \sqrt{-1} \frac{(br + k)c}{q} \right) \right|^2
+\end{align*}
+
+となる．
+このとき， $ \left| \mathrm{exp} \left( 2 \pi \sqrt{-1} \frac{kc}{q} \right) \right| = 1 $ に注意する．
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの詳細}
+
+$ rc \equiv \{ rc \}_q \ \mathrm{mod} \ q $ で，$ - \frac{q}{2} < \{ rc \}_q \leq \frac{q}{2} $ なる $ \{ rc \}_q $ を考える．
+すると，前述の確率は，\vspace{-25pt}
+
+\begin{align*}
+    \displaystyle \left| \frac{1}{q} \sum_{b = 0}^{\lfloor (q - k - 1)/r \rfloor} \mathrm{exp} \left( 2 \pi \sqrt{-1} b \frac{\{ rc \}_q}{q} \right) \right|^2
+\end{align*}
+
+と直せる．
+$ | \{ rc \}_q | \leq \frac{r}{2} $ で $q$ よりも十分小さい場合には，
+$ t = \frac{b}{q} $ と変数変換をすることで，\vspace{-25pt}
+
+\begin{align*}
+    \displaystyle \left| \int_{0}^{\frac{1}{q} \lfloor (q - k - 1)/r \rfloor} \mathrm{exp} \left( 2 \pi \sqrt{-1} \{ rc \}_q t \right) \ dt \right|^2
+\end{align*}
+
+なる積分へと近似できる．
+    
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの詳細}
+
+\begin{align*}
+    \displaystyle & \left| \int_{0}^{\frac{1}{q} \lfloor (q - k - 1)/r \rfloor} \mathrm{exp} \left( 2 \pi \sqrt{-1} \{ rc \}_q t \right) \ dt \right| \\
+    \displaystyle & = \left| \left[ \frac{1}{2 \pi \sqrt{-1} \{ rc \}_q} \mathrm{exp} \left( 2 \pi \sqrt{-1} \{ rc \}_q t \right) \right]_0^{\frac{1}{q} \lfloor (q - k - 1)/r \rfloor} \right| \\
+    \displaystyle & \geq \frac{1}{\pi r} \left| \mathrm{exp} \left( 2 \pi \sqrt{-1} \{ rc \}_q \frac{1}{q} \lfloor (q - k - 1)/r \rfloor \right) - 1 \right| \\
+    \displaystyle & \geq \frac{1}{\pi r} \left( \left| \mathrm{exp} \left( 2 \pi \sqrt{-1} \{ rc \}_q \frac{1}{q} \lfloor (q - k - 1)/r \rfloor \right) \right| + \left| - 1 \right| \right) \\
+    \displaystyle & = \frac{2}{\pi r}
+\end{align*}
+
+であるから，$ \frac{4}{\pi^2 r^2} \geq \frac{1}{3 r^2} $ ゆえ，
+状態 $ ( | c \rangle, | x^k \ \mathrm{mod} \ N \rangle ) $ を観測する確率は，少なくとも $ \frac{1}{3 r^2} $ となる．
+    
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの詳細}
+    
+$ rc \equiv \{ rc \}_q \ \mathrm{mod} \ q $ であったから，
+ある整数 $d$ を用いて，$ - \frac{r}{2} \leq rc - dq \leq \frac{r}{2} $ となり，
+このことから，$ \left| \frac{c}{q} - \frac{d}{r} \right| \leq \frac{1}{2q} $ を得る． \\
+今，$ c $ と $q$ は既知で，$ q \geq 2 N^2 > 2 r^2 $ から，
+下記の定理\cite{縫田}を用いて，$r$ を特定することができる．
+
+\vspace{10pt}
+
+\begin{itembox}[l]{Thm}
+    $ R_0 := q, \ R_1 := c $ とおき，$ R_0 > R_1 $ を入力とした拡張Euclidの互除法により $ R_2, R_3, \cdots $ を定める．
+    同時に $ R_i = (-1)^i (P_i R_0 - Q_i R_1) $ を満たす $ P_i, Q_i \in \mathbb{Z} \ (P_0 = 1, \ Q_0 = 0, \ P_1 = 0, \ Q_1 = 1) $ を定める．
+    互除法によりはじめて $ R_I = 0 $ なる添字 $I$ を取り，$ (P_{I + 1}, \ Q_{I + 1}, \ R_{I + 1}) = (P_{I}, \ Q_{I}, \ R_{I}) $ とする． \\
+    このとき，整数 $ A > B > 0 $ が $ \left| \frac{R_1}{R_0} - \frac{B}{A} \right| < \frac{1}{2 A^2} $ を満たすとき，
+    ある $ i \geq 2 $ について $ \frac{B}{A} = \frac{P_i}{Q_i} $ が成り立つ．
+\end{itembox} 
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの素因数分解アルゴリズムの詳細}
+
+$r$ を特定できるような $ ( | c \rangle, | x^k \ \mathrm{mod} \ N \rangle ) $ が取りうる状態の数を求める．\\
+$ \left| \frac{c}{q} - \frac{d}{r} \right| \leq \frac{1}{2q} $ において，$ \frac{d}{r} $ は既約ゆえ，$d$ は $\phi(r)$ 個の値を取りうる． \\
+$r$ が $x$ の位数ゆえ， $ x^k $ が取りうる値の数は $r$ 個である． \\
+ここで，状態 $ ( | c \rangle, | x^k \ \mathrm{mod} \ N \rangle ) $ を観測する確率は，少なくとも $ \displaystyle \frac{1}{3 r^2} $ であったから，
+$r$ を得る確率は少なくとも $ \displaystyle \frac{\phi(r)}{3r} $ となる．
+また，下記の定理\cite{HW}から，$ O(\mathrm{log} \ \mathrm{log} r) $ の計算量で $r$ を求めることができる．
+
+\begin{itembox}[l]{Thm}
+    $ \displaystyle \underset{r \rightarrow \infty}{\mathrm{lim}} \frac{\phi(r) \mathrm{log} \mathrm{log} r}{r} = e^{- \gamma} $ \\
+    ここで，$ \gamma $ はEuler定数で，$ \displaystyle \gamma = \underset{n \rightarrow \infty}{\mathrm{lim}} \left( \sum_{k = 1}^n \frac{1}{k} - \mathrm{log}(n) \right) $ である．
+\end{itembox} 
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{4. Shorの素因数分解アルゴリズムの実装}
+                  
+1. Shorの素因数分解アルゴリズムの概要 \\
+2. 量子計算理論入門 \\
+3. Shorの素因数分解アルゴリズムの詳細 \\
+\textcolor{red}{4. Shorの素因数分解アルゴリズムの実装} \\
+5. Shorの離散対数アルゴリズムの詳細
+                      
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{実装の前準備}
+        
+以下では，Python の Qiskit というモジュールを使用して実装する．
+また，$(N, x) = (35, 8)$ の場合のみに絞ってコードを紹介する． \\
+
+初めに以下をインポートする．
+
+\vspace{10pt}
+
+%% Shor_import.py は同ディレクトリ格納の Shor.py のインポート部分のみ抜粋したもの
+
+\lstinputlisting[basicstyle=\ttfamily\footnotesize, frame=single, numbers=left, breaklines=true]{Shor_import.py}
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{量子ゲートの実装}
+
+$ U | y \rangle \equiv | 8y \ \mathrm{mod} \ 35 \rangle $ として，$ y = 1 $ なる初期状態に，$ U $ を作用させるような量子ゲートを作る
+   
+%% Shor_quantum_gate.py は同ディレクトリ格納の Shor.py の c_xmod35 部分のみ抜粋したもの
+
+\lstinputlisting[basicstyle=\ttfamily\scriptsize, frame=single, numbers=left, breaklines=true]{Shor_quantum_gate.py}
+        
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{実装した量子ゲート}
+    
+前スライドで実装した量子ゲートは次のように図示できる．
+
+\vspace{5pt}
+
+\begin{figure}
+    \includegraphics[width = 12cm]{Shor_quantum_gate_35.png}
+\end{figure}
+
+上記は2回しか繰り返していないが，実際は引数で与えられる power 回だけ繰り返す
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{量子Fourier変換の実装}
+
+固有状態を得るために，量子Fourier変換を作用させる．
+
+%% Shor_quantum_fourier.py は同ディレクトリ格納の Shor.py の qft_dagger 部分のみ抜粋したもの
+
+\lstinputlisting[basicstyle=\ttfamily\footnotesize, frame=single, numbers=left, breaklines=true]{Shor_quantum_fourier.py}    
+            
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{量子位相推定の実装}
+
+量子Fourier変換を作用して得られた値を測定し，位数を得る．
+           
+%% Shor_phase_esimate.py は同ディレクトリ格納の Shor.py の qpe_xmod35 部分のみ抜粋したもの
+
+\lstinputlisting[basicstyle=\ttfamily\scriptsize, frame=single, numbers=left, breaklines=true]{Shor_phase_esimate.py}         
+                
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{実装のまとめと出力結果の確認}
+
+以下を実行することで，35の素因数として5と7を得る．
+
+%% Shor_35_factorization.py は同ディレクトリ格納の Shor.py の実行部分のみ抜粋したもの
+
+\lstinputlisting[basicstyle=\ttfamily\scriptsize, frame=single, numbers=left, breaklines=true]{Shor_35_factorization.py}                
+                    
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{5. Shorの離散対数アルゴリズムの詳細}
+                  
+1. Shorの素因数分解アルゴリズムの概要 \\
+2. 量子計算理論入門 \\
+3. Shorの素因数分解アルゴリズムの詳細 \\
+4. Shorの素因数分解アルゴリズムの実装 \\
+\textcolor{red}{5. Shorの離散対数アルゴリズムの詳細}
+                      
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの離散対数アルゴリズムの詳細}
+
+$p$ を素数，$g$ を $ \mathbb{Z} / p \mathbb{Z} $ の生成元，$ x $ を $ \mathbb{Z} / p \mathbb{Z} $ からランダムに選ぶ．
+また，$ p \leq q < 2p $ で2べきなる $q$ を取る．\\
+このとき，$ g^r \equiv x \ \mathrm{mod} \ p $ なる $r$ を見つけることが目標． \\
+$ a, b $ を $ \mathbb{Z} / p \mathbb{Z} $ からランダムに取り，次の状態を観測する． \vspace{-15pt}
+
+\begin{align*}
+    \displaystyle \frac{1}{p - 1} \sum_{a = 0}^{p - 2} \sum_{b = 0}^{p - 2} | a \rangle \otimes | b \rangle
+\end{align*}
+
+そして，この $ a, b $ をfixして，$ g^a x^{- b} \ \mathrm{mod} \ p $ を観測すると，\vspace{-15pt}
+
+\begin{align*}
+    \displaystyle \frac{1}{p - 1} \sum_{a = 0}^{p - 2} \sum_{b = 0}^{p - 2} | a \rangle \otimes | b \rangle \otimes | g^a x^{-b} \ \mathrm{mod} \ p \rangle
+\end{align*}
+
+となる．
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの離散対数アルゴリズムの詳細}
+    
+このとき，量子Fourier変換を作用させると，\vspace{-15pt}
+
+\scriptsize
+\begin{align*}
+    \displaystyle & \frac{1}{p - 1} \sum_{a = 0}^{p - 2} \sum_{b = 0}^{p - 2} \left( \frac{1}{q^{1/2}} \sum_{c = 0}^{q - 1} \mathrm{exp}( 2 \pi \sqrt{-1} \frac{ac}{q} ) | c \rangle \right) \otimes \left( \frac{1}{q^{1/2}} \sum_{d = 0}^{q - 1} \mathrm{exp}( 2 \pi \sqrt{-1} \frac{bd}{q} ) | d \rangle \right) \otimes | g^a x^{-b} \ \mathrm{mod} \ p \rangle \\
+    \displaystyle & = \frac{1}{(p - 1)q} \sum_{a = 0}^{p - 2} \sum_{b = 0}^{p - 2} \sum_{c = 0}^{p - 2} \sum_{d = 0}^{p - 2} \left( \mathrm{exp}( 2 \pi \sqrt{-1} \frac{ac + bd}{q} ) \right) | c \rangle \otimes | d \rangle \otimes | g^a x^{-b} \ \mathrm{mod} \ p \rangle
+\end{align*}
+
+\normalsize
+となる．
+このとき，状態 $ | c \rangle \otimes | d \rangle \otimes | y \rangle \ \mathrm{s.t.} \ y \equiv g^k \ \mathrm{mod} \ p, \ k \in \mathbb{Z} $ を観測する確率は， \vspace{-15pt}
+
+\begin{align*}
+    \displaystyle \left| \frac{1}{(p - 1)q} \sum_{\substack{a, b \\ a - rb \equiv k}} \mathrm{exp} ( 2 \pi \sqrt{-1} \frac{ac + bd}{q} ) \right |^2 
+\end{align*}
+
+である．
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの離散対数アルゴリズムの詳細}
+
+\begin{align*}
+    \displaystyle a - rb \equiv k \ \mathrm{mod} \ p - 1 \Rightarrow a = br + k - (p - 1) \left \lfloor \frac{br + k}{p - 1} \right \rfloor
+\end{align*}
+
+であり，\vspace{-15pt}
+
+\begin{align*}
+    \displaystyle \{ z \}_q & : z \ \mathrm{mod} \ q \ \mathrm{s.t.} \ - \frac{q}{2} < \{ z \}_q \leq \frac{q}{2} \\
+    \displaystyle U = bT, \hspace{10pt} T & = rc + d - \frac{r}{p - 1} \{ c(p - 1)\}_q \\
+    \displaystyle V & = \left( \frac{br}{p - 1} - \left \lfloor \frac{br + k}{p - 1} \right \rfloor \right) \{ c(p - 1) \}_q
+\end{align*}
+
+と置くと，前述の確率は， \vspace{-15pt}
+
+\begin{align*}
+    \left | \frac{1}{(p - 1) q} \sum_{b = 0}^{p - 2} \mathrm{exp} ( \frac{2 \pi \sqrt{-1}}{q} U ) \mathrm{exp} ( \frac{2 \pi \sqrt{-1}}{q} V ) \right |^2
+\end{align*}
+
+と表せる．
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Shorの離散対数アルゴリズムの詳細}
+    
+このとき，以下の2つを仮定する: \vspace{-15pt}
+
+\begin{align*}
+    \displaystyle & \bullet \ | \{ T \}_q | = | T - jq | \leq \frac{1}{2} \\
+    \displaystyle & \bullet \{ c(p - 1) \}_q \leq \frac{q}{20}
+\end{align*}
+
+ここで，$j$ は $ T/q $ に最も近い整数で，2つ目の条件から，$ |V| \leq \frac{q}{20} $ を得る．
+$ 0 \leq b \leq p - 2 $ ゆえ，$ 0 \leq \frac{2 \pi \sqrt{-1}}{q} U \leq \frac{2 \pi \sqrt{-1}}{q} W $ となる．
+ただし，$ W = (p - 2) T $ である．\\
+このとき，$b$ を動かしたときの $ \mathrm{exp} ( \frac{2 \pi \sqrt{-1}}{q} U ) $ の合成は，
+$ \mathrm{exp} ( \pi \sqrt{-1} W ) $ 方向を向かい，
+$ \forall b $ に対して，$ \displaystyle \mathrm{exp} \left( \frac{2 \pi \sqrt{-1}}{q} U \right) $  $ = \mathrm{exp} \left( \frac{2 \pi \sqrt{-1}}{p-2} Wb \right) $ の
+$ \mathrm{exp}(\pi i W) $ 方向への射影の大きさは $ \displaystyle \mathrm{cos} \left( 2 \pi \left| \frac{W}{2} - \frac{Wb}{p - 2} \right| \right) $ である．
+
+\end{frame}
+
+
+\begin{frame}
+    
+\frametitle{Shorの離散対数アルゴリズムの詳細}
+
+また，$ | V | \leq \frac{q}{20} $ であったから，$ | \mathrm{exp} ( \frac{2 \pi \sqrt{-1}}{q} V ) | \leq \mathrm{exp} (\frac{\pi \sqrt{-1}}{10}) $ である．\\
+先ほど考えた射影と合成すると，$ \forall b $ に対して，$ \mathrm{exp}(\pi i W) $ 方向への射影の大きさは $ \displaystyle \mathrm{cos} \left( 2 \pi \left| \frac{W}{2} - \frac{Wb}{p - 2} \right | + \frac{\pi}{10} \right) $ である．\\
+つまり，状態 $ | c \rangle \otimes | d \rangle \otimes | y \rangle \ \mathrm{s.t.} \ y \equiv g^k \ \mathrm{mod} \ p, \ k \in \mathbb{Z} $ を観測する確率は， \vspace{-15pt}
+
+\begin{align*}
+    \displaystyle \left | \frac{1}{(p - 1)q} \sum_{b = 0}^{p - 2} \mathrm{cos} \left( 2 \pi \left| \frac{W}{2} - \frac{Wb}{p - 2} \right | + \frac{\pi}{10} \right) \right|^2
+\end{align*}
+
+であり，これを整理すると，\vspace{-15pt}
+
+\begin{align*}
+    \displaystyle \left( \frac{1}{q} \frac{2}{\pi} \int_{\frac{\pi}{10}}^{\frac{7 \pi}{20}} \mathrm{cos} t \ dt \right)^2
+\end{align*}
+
+となる．
+
+\end{frame}
+
+
+\begin{frame}
+    
+\frametitle{Shorの離散対数アルゴリズムの詳細}
+
+\begin{align*}
+    \displaystyle & \left( \frac{1}{q} \frac{2}{\pi} \int_{\frac{\pi}{10}}^{\frac{7 \pi}{20}} \mathrm{cos} t \ dt \right)^2 \\
+    \displaystyle & \geq \left( \frac{1}{q} \frac{2}{\pi} \left[ \mathrm{sin} t \right]_{\frac{\pi}{10}}^{\frac{7 \pi}{20}} \right)^2 \\
+    \displaystyle & \geq \left( \frac{1}{q} \frac{2}{\pi} \left( \mathrm{sin} \left( \frac{7 \pi}{20} \right) - \mathrm{sin} \left( \frac{\pi}{10} \right) \right) \right)^2 \\
+    \displaystyle & \geq \left( \frac{1}{q} \frac{2}{3.15} 0.58 \right)^2 \\
+    \displaystyle & \geq \frac{135}{1000q^2} \\    
+\end{align*}
+
+\end{frame}
+
+
+\begin{frame}
+    
+\frametitle{Shorの離散対数アルゴリズムの詳細}
+    
+ここで，仮定した2条件を満たす $ (c, d) $ のペアがどのくらいあるのかを考察する．\\
+$ | \{ T \}_q | = | T - jq | \leq \frac{1}{2} $ であり，
+$ T = rc + d - \frac{r}{p - 1} \{ c(p - 1)\}_q $ であったから，
+$ \forall c $ に対して，このような $ d $ が一意的に定まる． \\
+また，$ \{ c(p - 1) \}_q \leq \frac{q}{20} $ では，
+$ \displaystyle \{ z \}_q : z \ \mathrm{mod} \ q \ \mathrm{s.t.} \ - \frac{q}{2} < \{ z \}_q \leq \frac{q}{2} $ ゆえ，
+$ \frac{q}{10} $ 個の $ (c, d) $ のペアが条件を満たす．\\
+更に，$ 0 \leq b \leq p - 1 $ ゆえ，$ b $ は $p$ 個の値を取りうるから，
+合計で $ \frac{pq}{10} $ 個の状態がありうる．\\
+それぞれの状態に対して，$ \frac{135}{1000q^2} $ の確率で $r$ を発見できるから，
+合計で，$ \frac{135}{1000q^2} \times \frac{pq}{10} > \frac{p}{80q} $ であり，
+$ q < 2p $ ゆえ，$ \frac{p}{80q} > \frac{1}{160} $ を得る．
+    
+\end{frame}
+
+
+\begin{frame}
+    
+\frametitle{Shorの離散対数アルゴリズムの詳細}
+
+条件を満たす $ (c, d) $ から，$r$ を発見できることを示す．\\
+条件から $ \displaystyle - \frac{1}{2} \leq \frac{T}{q} - j \leq \frac{1}{2} $ である．
+つまり，\vspace{-15pt}
+
+\begin{align*}
+    \displaystyle - \frac{1}{2 q} \leq \frac{d}{q} + \frac{r}{q} \left( c - \frac{ \{ c(p - 1) \}_q }{p - 1} \right) \leq \frac{1}{2 q}
+\end{align*}
+
+である．
+ここで，$r$ と $p - 1$ が互いに素であれば，\vspace{-10pt}
+
+\begin{align*}
+    \displaystyle \frac{r}{q} \left( c - \frac{ \{ c(p - 1) \}_q }{p - 1} \right) = \frac{r}{p - 1} c^{\prime}, \hspace{10pt} c^{\prime} = \frac{c(p - 1) - \{ c(p - 1) \}_q }{q}
+\end{align*}
+
+としたとき，$ c^{\prime} \in \mathbb{Z} $ である，
+特に，$ \displaystyle c^{\prime} = \left \lfloor \frac{c(p - 1)}{q} \right \rfloor $ or $ \displaystyle \left \lceil \frac{c(p - 1)}{q} \right \rceil $ となる．
+    
+\end{frame}
+
+
+\begin{frame}
+    
+\frametitle{Shorの離散対数アルゴリズムの詳細}
+
+以上より，\vspace{-10pt}
+
+\begin{align*}
+    \displaystyle \left( - \frac{1}{2 q} - \frac{d}{q} \right) \frac{1}{c^{\prime}} \leq \frac{r}{p - 1} \leq \left( \frac{1}{2 q} - \frac{d}{q} \right) \frac{1}{c^{\prime}}
+\end{align*}
+
+であり，$ \frac{r}{p - 1} $ が既約分数であることから，$r$ を特定できる．
+また，特定できる確率は少なくとも $ \frac{1}{160} $ 以上であるから，
+（多項式回）繰り返すことで $r$ を特定できる．
+    
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{参考文献}
+
+\begin{thebibliography}{9}
+  \beamertemplatetextbibitems
+  \bibitem{NC} 
+  M. A. Nielsen and I.L. Chuang: $Quantum \ Computation \ and \ Quantum \ Information$，Cambridge University Press，2000
+  \bibitem{森前}
+  森前 智行，『量子計算理論』，森北出版，2017年
+  \bibitem{縫田}  
+  縫田 光司，『耐量子計算機暗号』，森北出版，2020年
+  \bibitem{HW}
+  G. H. Hardy and E. M. Wright: $ An \ Introduction \ to \ the \ Theory \ of \ Numbers, \ Fifth \ Edition $, Oxford University Press, New York, 1979
+\end{thebibliography}
+
+\end{frame}
+
+
+\end{document}
