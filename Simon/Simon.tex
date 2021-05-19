@@ -1,0 +1,309 @@
+\documentclass[dvipdfmx,12pt]{beamer}% dvipdfmxしたい
+\usepackage{bxdpx-beamer}% dvipdfmxなので必要
+\usepackage{pxjahyper}% 日本語で'しおり'したい
+\usepackage{minijs}% min10ヤダ
+\renewcommand{\kanjifamilydefault}{\gtdefault}% 既定をゴシック体に
+
+% あとは欧文の場合と同じ
+\usetheme{Madrid}
+
+\usepackage[labelformat=empty,labelsep=none]{caption}
+\usepackage{ascmac}
+\usepackage{amsmath,amssymb}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}
+\usepackage{ulem}
+\usepackage{fancybox,ascmac}
+\usepackage{bm}
+\usepackage{listings}
+\usepackage{graphicx}
+\setbeamertemplate{navigation symbols}{}
+\usepackage{mathptmx}
+
+\title{Simonのアルゴリズム解説}
+\author[Laplace0917]{@0917datw}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+
+\begin{frame}
+
+\frametitle{はじめに}
+
+本スライドは，下記の論文解説を行なうものである．\\
+  
+\vspace{25pt}
+
+\begin{center}
+    
+\end{center}
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{目次}
+
+1. Simonのアルゴリズムの概要 \\
+2. Simonのアルゴリズムの詳細 \\
+3. Simonのアルゴリズムの実装 \\
+    
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{1. Simonのアルゴリズムの概要}
+  
+\textcolor{red}{1. Simonのアルゴリズムの概要} \\
+2. Simonのアルゴリズムの詳細 \\
+3. Simonのアルゴリズムの実装 \\
+      
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Simonのアルゴリズムの概要}
+      
+Simonのアルゴリズムは次の問題を多項式時間で求めるアルゴリズムである． \\
+
+\vspace{10pt}
+
+Input : $n, m \in \mathbb{N} \ \mathrm{s.t.} \ n \leq m$ \\
+Output : one-to-one or two-to-one \\
+
+\vspace{10pt}
+
+$ f : \{ 0, 1 \}^n \rightarrow \{ 0, 1 \}^m $ について，\vspace{-15pt}
+
+\begin{align*}
+    x , x^{\prime} \in \{0, 1\}^n, \  f(x) = f(x^{\prime}) \Leftrightarrow f : \mathrm{one} \mathchar`- \mathrm{to} \mathchar`- \mathrm{one} \ \mathrm{or} \ \mathrm{two} \mathchar`- \mathrm{to} \mathchar`- \mathrm{one}   
+\end{align*}
+
+が成り立つとき，$f$ がone-to-oneかtwo-to-oneか判定せよ．\\
+ただし，\vspace{-15pt}
+
+\footnotesize
+\begin{align*}
+    f : \mathrm{one} \mathchar`- \mathrm{to} \mathchar`- \mathrm{one} & \Leftrightarrow \forall b \in \{ 0, 1 \}^m, \exists a \in \{ 0, 1 \}^n \ \mathrm{s.t.} \ f(a) = b \\
+    f : \mathrm{two} \mathchar`- \mathrm{to} \mathchar`- \mathrm{one} & \Leftrightarrow \forall b \in \{ 0, 1 \}^m, \exists a, c \in \{ 0, 1 \}^n \ \mathrm{s.t.} \ f(a) = f(c) = b, \ a \neq c
+\end{align*}
+\normalsize
+          
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Simonのアルゴリズムの補足}
+
+一般にSimonのアルゴリズムは次のような形で書かれる．
+
+\vspace{10pt}
+
+Input : $n, m \in \mathbb{N} \ \mathrm{s.t.} \ n \leq m$ \\
+Output : $ s \in \{ 0, 1 \}^n $ \\
+
+\vspace{10pt}
+
+$ f : \{ 0, 1 \}^n \rightarrow \{ 0, 1 \}^m $ について，\vspace{-15pt}
+
+\begin{align*}
+    x , x^{\prime} \in \{0, 1\}^n, \ \exists s \in \{ 0, 1 \}^n \ \mathrm{s.t.} \ f(x) = f(x^{\prime}) \Leftrightarrow x^{\prime} \in \{ x, x \oplus s \}
+\end{align*}
+
+が成り立つような $ s \in \{ 0, 1 \}^n $ を特定せよ．
+
+\vspace{10pt}
+
+$ s = 0^n $ のとき，$ f(x) = f(x^{\prime}) \Rightarrow x =  x^{\prime} $ は単射の定義そのもの． \\
+$ s \neq 0^n $ のとき，$ x \neq x \oplus s $ だが，$ f(x) = f(x \oplus s) $ となっている．              
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{Simonのアルゴリズムの補足}
+    
+感覚的には，$ 2^{n - 1} + 1 $ 個の $x$ について $f(x)$ の値を調べれば判定できる．
+つまり，そのときの計算量は $ O(2^n) $ である． \\
+しかし，このアルゴリズムでは，$ O(2^{\frac{n}{2}}) $ の計算量で判定できる．
+    
+\vspace{10pt}
+                
+    
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{2. Simonのアルゴリズムの詳細}
+      
+1. Simonのアルゴリズムの概要 \\
+\textcolor{red}{2. Simonのアルゴリズムの詳細} \\
+3. Simonのアルゴリズムの実装 \\
+          
+\end{frame}
+
+\begin{frame}
+
+\frametitle{2. Simonのアルゴリズムの詳細}
+                  
+初めに以下の4ステップを十分な回数（後に定量化）繰り返す． \\
+$i)$  Hadamard変換を作用させて $ x \in $ {$ 0, 1 $}$^n$ に対して，$ \displaystyle \frac{1}{\sqrt{2^n}} \sum_x | x \rangle $ なる状態を作る  \\
+$ii)$  $i)$ を使った合成 $ \displaystyle \frac{1}{\sqrt{2^n}} \sum_x | x \rangle \otimes | 0 \rangle $ なる状態を量子オラクルへ与えることで $ \displaystyle \frac{1}{\sqrt{2^n}} \sum_x | x \rangle \otimes | x \oplus s \rangle $ なる状態を得る \\
+$iii)$ $ii)$ の前半 $n$ ビットにもう一度Hadamard変換を作用させることで，$ \displaystyle \frac{1}{2^n} \sum_y \sum_x (-1)^{xy} | x \rangle \otimes | y \oplus s \rangle $ なる状態を得る \\
+$iv)$ $iii)$ を測定する \\
+  
+上記の測定値が生成するベクトル空間 $V$ の次元を $ \ell $ とするとき，\\
+$ \ell = n \Rightarrow s = 0^n $ \\
+$ \ell < n \Rightarrow s = $ ($V$の任意の元と直交するベクトル)
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{2. Simonのアルゴリズムの詳細}
+                      
+以下を考察する． \\
+$ \bullet $ 測定値で得られたベクトルは $s$ と直交する \\
+$ \bullet $ ループ回数の定量化
+    
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{2. 測定値で得られたベクトルは $s$ と直交する}
+                          
+$iii)$ に対して，$ (| z \rangle)_{z \in \{ 0, 1 \}^n } $ に関する測定を行う．
+$ s = 0^n $ のときは，$z$ が等確率で出現し，このとき，$s$ は $ \{ 0, 1 \}^n $ の任意の元と直交する．\\
+$ s \neq 0^n $ のときは，$(| y \rangle)$ に関する測定を行うと，
+$ \displaystyle | y \rangle = \frac{1}{2} ( | x \rangle + | x \oplus s \rangle ) $ と表せるから，
+$iii)$ は $ \displaystyle \frac{1}{2^{(n + 1)/2}} \sum_y (-1)^{xy} | x \rangle + | x \oplus s \rangle $ となる．\\
+$ (-1)^{xy} | x \rangle + | x \oplus s \rangle = (-1)^{xy} | x \rangle + (-1)^{(x \oplus s)y} | x \rangle $  
+$ = (-1)^{xy} (1 + (-1)^{sy} ) | x \rangle = (-1)^{xy} | x \rangle \ \mathrm{if} \ sy = 0 $ \\
+        
+ゆえ，$ ys = 0 $ i.e. $ y $ と $s$ が直交する結果のみを得る．
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{2. ループ回数の定量化}
+                          
+$s \neq 0$ のとき，$\ell$ 回測定を行なって，生成するベクトル空間 $ V_{\ell} $ の次元を $d_{\ell}$ と表す．
+すると，$d_{\ell}$ の取りうる値は高々 $n - 1$ である．
+$ d_{\ell} = n - 1 $ になるときの $\ell$ を評価すれば良い．\\
+
+\vspace{10pt}
+
+簡単のため、$ \ell + 1 $ 回目の測定値が $ V_k $ に属さない（＝$ V_{k + 1} $ の次元が $d_k + 1$ になる）確率を
+$\ell$ によらず $ \frac{1}{2} $ とする．
+すると，このことは，成功する確率が $ \frac{1}{2} $ の一様分布に従う事象において，
+$ \ell - 1 $ 回目まで $ n - 2 $ 回成功し，$ \ell $ 回目も成功する場合を考えることと同値．
+
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{2. ループ回数の定量化}
+                                  
+下記の不等式で，$ N = \ell, \ p = \frac{1}{2}, \ t = \frac{1}{2} - \frac{n - 2}{\ell} $ とした場合，
+右辺は $ \displaystyle 2 \mathrm{exp} \left( - \frac{(\ell - 2(n - 2))^2}{2 \ell} \right) $ ゆえ，$ \ell \geq 3n $ とすると，
+右辺を $ \displaystyle 2 \mathrm{exp} \left(- \frac{n}{6} \right) $ で抑えることができる．\\
+以上より，測定を，つまり，ループを $ 3n $ 回以上行えば，失敗する確率は $ \displaystyle 2 \mathrm{exp} (- \frac{n}{6} ) $ 
+以下になることが示された．
+    
+\vspace{10pt}
+
+\begin{itembox}[l]{Thm}
+   $ 1 \leq i \leq N $ で確率変数 $X_i$ が i.i.d. のとき，
+   $ 0 \leq p \leq 1, \ \mathrm{Pr}[X_i = 1] = p, \ \mathrm{Pr}[X_i = 0] = 1 - p, \ t > 0 $ とするとき，次の不等式が成り立つ \\
+   $ \displaystyle \mathrm{Pr} \left[ \left| \frac{X_1 + \cdots + X_N}{N} - p \right| \geq t \right] \leq 2 \mathrm{exp}(-2 N t^2) $
+\end{itembox} 
+            
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{3. Simonのアルゴリズムの実装}
+          
+1. Simonのアルゴリズムの概要 \\
+2. Simonのアルゴリズムの詳細 \\
+\textcolor{red}{3. Simonのアルゴリズムの実装}
+              
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{3. Simonのアルゴリズムの実装}
+              
+初めに以下をインポートする．
+
+\vspace{10pt}
+
+%% Shor_import.py は同ディレクトリ格納の Shor.py のインポート部分のみ抜粋したもの
+
+\lstinputlisting[basicstyle=\ttfamily\footnotesize, breaklines=true]{Simon_import.py}
+                  
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{3. Simonのアルゴリズムの実装}
+              
+全てまとめたスクリプト，今回は $ s = 11000 $ で実装している
+
+\vspace{10pt}
+
+%% Simon_main.py は同ディレクトリ格納の Simon.py の main 関数部分のみ抜粋したもの
+
+\lstinputlisting[basicstyle=\ttfamily\tiny, breaklines=true]{Simon_main.py}
+                  
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{3. 量子オラクルの実装}
+              
+今回の量子オラクルをスクラッチ実装したもの
+
+\vspace{10pt}
+
+%% Shor_quantum_oracle.py は同ディレクトリ格納の Shor.py の quantum_simon_oracle 関数部分のみ抜粋したもの
+
+\lstinputlisting[basicstyle=\ttfamily\tiny, breaklines=true]{Simon_quantum_oracle.py}
+                  
+\end{frame}
+
+
+\begin{frame}
+
+\frametitle{参考文献}
+
+\begin{thebibliography}{9}
+  \beamertemplatetextbibitems
+  \bibitem{NC} 
+  M. A. Nielsen and I.L. Chuang: $Quantum \ Computation \ and \ Quantum \ Information$，Cambridge University Press，2000
+  \bibitem{縫田}  
+  縫田 光司，『耐量子計算機暗号』，森北出版，2020年
+\end{thebibliography}
+
+\end{frame}
+
+
+\end{document}
