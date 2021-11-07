@@ -13,7 +13,7 @@ from qiskit.circuit.library import MCMT
 
 def main(n, w):
     grover_circuit = QuantumCircuit(n)
-    grover_circuit = initialize_s(grover_circuit, list(range(n)))
+    grover_circuit = initialize(grover_circuit, list(range(n)))
     grover_circuit.append(oracle(n, w), list(range(n)))
     grover_circuit.append(diffuser(n), list(range(n)))
     grover_circuit.measure_all()
@@ -24,8 +24,8 @@ def main(n, w):
     show_distribution(answer)
 
     
-def initialize_s(qc, qubits):
-    """回路のqubitsにHゲートを適用"""
+def initialize(qc, qubits):
+    # 回路のqubitsにHゲートを適用
     for q in qubits:
         qc.h(q)
 
@@ -40,8 +40,6 @@ def oracle(n, w):
     if len(bin_w) < n:
         for _ in range(n - len(bin_w)):
             bin_w.insert(0, 0)
-
-    print(bin_w)
 
     # w を２進展開した際に，要素が0の箇所をbit反転する
     # 要素が全て1の場合のみに符号を反転させる
@@ -59,24 +57,24 @@ def oracle(n, w):
     return oracle_gate
 
 
-def diffuser(nqubits):
-    qc = QuantumCircuit(nqubits)
+def diffuser(n):
+    qc = QuantumCircuit(n)
 
     # Hゲートで |s> -> |00..0> に変換
-    for qubit in range(nqubits):
+    for qubit in range(n):
         qc.h(qubit)
     # Xゲートで |00..0> -> |11..1> に変換
-    for qubit in range(nqubits):
+    for qubit in range(n):
         qc.x(qubit)
     # マルチ制御Zゲートをかけます
-    qc.h(nqubits-1)
-    qc.mct(list(range(nqubits-1)), nqubits-1)  # マルチ制御トフォリ
-    qc.h(nqubits-1)
+    qc.h(n - 1)
+    qc.mct(list(range(n - 1)), n - 1)  # マルチ制御トフォリ
+    qc.h(n - 1)
     # |11..1> -> |00..0> に変換
-    for qubit in range(nqubits):
+    for qubit in range(n):
         qc.x(qubit)
     # |00..0> -> |s> に変換
-    for qubit in range(nqubits):
+    for qubit in range(n):
         qc.h(qubit)
 
     U_s = qc.to_gate()
@@ -85,8 +83,8 @@ def diffuser(nqubits):
     return U_s
 
 
-# 横軸を整数でプロットする
 def show_distribution(answer):
+    # 横軸を整数でプロットする
     n = len(answer)
     x = [int(key,2) for key in list(answer.keys())]
     y = list(answer.values())
@@ -103,8 +101,6 @@ def show_distribution(answer):
     autolabel(rect)
     plt.ylabel('Probabilities')
     plt.show()
-    fig = plt.figure()
-    fig.savefig('grover.png')
     
 
 if __name__ == '__main__':
