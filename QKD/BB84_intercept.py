@@ -1,4 +1,4 @@
-# implement BB84 protocol without interception
+# implement BB84 protocol with interception
 
 # preprocessing
 from qiskit import QuantumCircuit, Aer, transpile, assemble
@@ -75,6 +75,11 @@ def main():
     ## Alice encodes quantum bit sequence by using classical bits and bases, send Bob that
     message = encode_message(alice_bits, alice_bases)
 
+    # interception
+    ## Eve intercepts Alice's message by using random bases
+    eve_bases = randint(2, size=n)
+    intercepted_message = measure_message(message, eve_bases)
+
     # Step 3
     ## Bob measures Alice's message by using random bases
     bob_bases = randint(2, size=n)
@@ -99,6 +104,6 @@ if __name__ == '__main__':
     main()
 
 '''
-  bob_sample = [0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
-alice_sample = [0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+  bob_sample = [0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1]
+alice_sample = [0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1]
 '''
